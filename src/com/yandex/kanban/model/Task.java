@@ -1,4 +1,4 @@
-package kanban.tasks;
+package com.yandex.kanban.model;
 
 import java.util.Objects;
 
@@ -9,42 +9,42 @@ public class Task {
     private int id;
     private TaskStatus status;
 
-    Task(String title, String description) {
+    public Task(String title, String description) {
         this.title = title;
         this.description = description;
         this.id = -1;
         this.status = TaskStatus.NEW;
     }
 
-    String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    void setTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    String getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    int getId() {
+    public int getId() {
         return id;
     }
 
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    TaskStatus getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    void setStatus(TaskStatus status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

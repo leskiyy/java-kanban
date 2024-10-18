@@ -1,4 +1,9 @@
-package kanban.tasks;
+package com.yandex.kanban.service;
+
+import com.yandex.kanban.model.Epic;
+import com.yandex.kanban.model.Subtask;
+import com.yandex.kanban.model.Task;
+import com.yandex.kanban.model.TaskStatus;
 
 import java.util.*;
 
@@ -69,18 +74,22 @@ public class TaskManager {
 
     public void removeTaskById(int id) {
         if (getTaskById(id) instanceof Epic) {
-            List<Integer> subtasksIds = ((Epic) getTaskById(id)).getSubtasksIds();
-            for (Integer subId : subtasksIds) {
-                tasksMap.remove(subId);
-            }
+            removeAllSubtasks(id);
         }
         if (getTaskById(id) instanceof Subtask) {
             Subtask subtask = (Subtask) getTaskById(id);
             Epic epic = (Epic) getTaskById(subtask.getEpicId());
-            epic.getSubtasksIds().remove(subtask.getEpicId());
+            epic.getSubtasksIds().remove((Integer) id);
             checkEpicStatus(epic.getId());
         }
         tasksMap.remove(id);
+    }
+
+    private void removeAllSubtasks(int epicId) {
+        List<Integer> subtasksIds = ((Epic) getTaskById(epicId)).getSubtasksIds();
+        for (Integer subId : subtasksIds) {
+            tasksMap.remove(subId);
+        }
     }
 
     public void updateTitle(String title, int id) {

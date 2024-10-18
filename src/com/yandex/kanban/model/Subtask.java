@@ -1,15 +1,15 @@
-package kanban.tasks;
+package com.yandex.kanban.model;
 
 public class Subtask extends Task {
 
     private final int epicId;
 
-    Subtask(String title, String description, int epicId) {
+    public Subtask(String title, String description, int epicId) {
         super(title, description);
         this.epicId = epicId;
     }
 
-    int getEpicId() {
+    public int getEpicId() {
         return epicId;
     }
 

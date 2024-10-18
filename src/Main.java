@@ -1,9 +1,8 @@
-import kanban.tasks.TaskManager;
-import kanban.tasks.TaskStatus;
+import com.yandex.kanban.service.TaskManager;
+import com.yandex.kanban.model.TaskStatus;
 
 public class Main {
     public static void main(String[] args) {
-        //для тестов
         TaskManager taskManager = new TaskManager();
 
         taskManager.createTask("Casual Task", "do smth casual");
