@@ -5,138 +5,44 @@ import com.yandex.kanban.model.Subtask;
 import com.yandex.kanban.model.Task;
 import com.yandex.kanban.model.TaskStatus;
 
-import java.util.*;
+import java.util.List;
 
-public class TaskManager {
+public interface TaskManager {
+    Task createTask(String title, String description);
 
-    private int id = 0;
-    private Map<Integer, Task> tasksMap = new HashMap<>();
+    Epic createEpic(String title, String description);
 
-    public Task createTask(String title, String description) {
-        Task task = new Task(title, description);
-        task.setId(this.nextId());
-        tasksMap.put(task.getId(), task);
-        return task;
-    }
+    Subtask createSubtask(String title, String description, int epicId);
 
-    public Epic createEpic(String title, String description) {
-        Epic epic = new Epic(title, description);
-        epic.setId(this.nextId());
-        tasksMap.put(epic.getId(), epic);
-        return epic;
-    }
+    int addTask(Task task);
 
-    public Subtask createSubtask(String title, String description, int epicId) {
-        if (!(getTaskById(epicId) instanceof Epic)) {
-            throw new RuntimeException("wrong epic id");
-        }
-        Subtask subtask = new Subtask(title, description, epicId);
-        subtask.setId(this.nextId());
-        Epic epic = (Epic) getTaskById(epicId);
-        epic.getSubtasksIds().add(subtask.getId());
-        tasksMap.put(subtask.getId(), subtask);
-        checkEpicStatus(epicId);
-        return subtask;
-    }
+    int addEpic(Epic epic);
 
-    public Task getTaskById(int id) {
-        return tasksMap.get(id);
-    }
+    int addSubtask(Subtask subtask, int epicId);
 
-    public List<Task> getAllKindOfTasks() {
-        return tasksMap.values().stream().toList();
-    }
+    int addSubtask(Subtask subtask);
 
-    public List<Task> getAllTasks() {
-        return tasksMap.values().stream().filter(el -> !(el instanceof Epic) && !(el instanceof Subtask)).toList();
-    }
+    Task getTaskById(int id);
 
-    public List<Task> getAllEpics() {
-        return tasksMap.values().stream().filter(el -> el instanceof Epic).toList();
-    }
+    List<Task> getAllKindOfTasks();
 
-    public List<Task> getAllSubtasks() {
-        return tasksMap.values().stream().filter(el -> el instanceof Subtask).toList();
-    }
+    List<Task> getAllTasks();
 
-    public List<Task> getAllSubtasksByEpicId(int epicId) {
-        Epic epic = (Epic) getTaskById(epicId);
-        List<Task> subtasks = new ArrayList<>();
-        for (int i : epic.getSubtasksIds()) {
-            subtasks.add(getTaskById(i));
-        }
-        return subtasks;
-    }
+    List<Epic> getAllEpics();
 
-    public void removeAllTasks() {
-        tasksMap.clear();
-    }
+    List<Subtask> getAllSubtasks();
 
-    public void removeTaskById(int id) {
-        if (getTaskById(id) instanceof Epic) {
-            removeAllSubtasks(id);
-        }
-        if (getTaskById(id) instanceof Subtask) {
-            Subtask subtask = (Subtask) getTaskById(id);
-            Epic epic = (Epic) getTaskById(subtask.getEpicId());
-            epic.getSubtasksIds().remove((Integer) id);
-            checkEpicStatus(epic.getId());
-        }
-        tasksMap.remove(id);
-    }
+    List<Subtask> getAllSubtasksByEpicId(int epicId);
 
-    private void removeAllSubtasks(int epicId) {
-        List<Integer> subtasksIds = ((Epic) getTaskById(epicId)).getSubtasksIds();
-        for (Integer subId : subtasksIds) {
-            tasksMap.remove(subId);
-        }
-    }
+    void removeAllTasks();
 
-    public void updateTitle(String title, int id) {
-        tasksMap.get(id).setTitle(title);
-    }
+    void removeTaskById(int id);
 
-    public void updateDescription(String description, int id) {
-        tasksMap.get(id).setDescription(description);
-    }
+    void updateTitle(String title, int id);
 
-    public void updateStatus(TaskStatus status, int id) {
-        if (getTaskById(id) instanceof Epic) {
-            throw new RuntimeException("can't set epic status");
-        }
-        getTaskById(id).setStatus(status);
-        if (getTaskById(id) instanceof Subtask) {
-            int epicId = ((Subtask) getTaskById(id)).getEpicId();
-            checkEpicStatus(epicId);
-        }
-    }
+    void updateDescription(String description, int id);
 
-    private int nextId() {
-        return ++id;
-    }
+    void updateStatus(TaskStatus status, int id);
 
-    private void checkEpicStatus(int id) {
-        List<Integer> subsIds = ((Epic) getTaskById(id)).getSubtasksIds();
-        int countNEW = 0;
-        int countDONE = 0;
-        for (Integer subId : subsIds) {
-            TaskStatus status = getTaskById(subId).getStatus();
-            switch (status) {
-                case NEW:
-                    countNEW++;
-                    break;
-                case DONE:
-                    countDONE++;
-                    break;
-            }
-        }
-        if (countNEW == subsIds.size()) {
-            getTaskById(id).setStatus(TaskStatus.NEW);
-        } else if (countDONE == subsIds.size()) {
-            getTaskById(id).setStatus(TaskStatus.DONE);
-        } else {
-            getTaskById(id).setStatus(TaskStatus.IN_PROGRESS);
-        }
-    }
-
+    HistoryManager getHistoryManager();
 }

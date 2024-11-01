@@ -21,7 +21,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return super.toString().replaceFirst("Task", "Epic").replace("}","") +
+        return super.toString().replaceFirst("Task", "Epic").replace("}", "") +
                 ", subtasksIds=" + subtasksIds +
                 '}';
     }
