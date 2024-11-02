@@ -92,7 +92,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void updatingSubtaskStatus() {
+    void updatingEpicStatus() {
         Epic epic = taskManager.createEpic("TestStatus", "description");
 
         assertTrue(epic.getSubtasksIds().isEmpty(), "Вновь созданный эпик имеет подзадачи");
@@ -112,9 +112,11 @@ class InMemoryTaskManagerTest {
                 , "Эпик при добавлении подзадачи со статусом сделанная не поменял статус");
         assertEquals(3, epic.getSubtasksIds().size(), "Неверно добавились подзадачи в список эпика");
 
-        taskManager.updateStatus(TaskStatus.DONE, subtask1.getId());
+        taskManager.updateStatus(TaskStatus.IN_PROGRESS, subtask1.getId());
         taskManager.updateStatus(TaskStatus.DONE, subtask2.getId());
+        assertSame(TaskStatus.IN_PROGRESS, epic.getStatus(), "Эпик неверно поменял");
 
+        taskManager.updateStatus(TaskStatus.DONE, subtask1.getId());
         assertSame(TaskStatus.DONE, epic.getStatus(), "Эпик не поменял стутус при выполнении всех подзадач");
 
         Subtask subtask4 = taskManager.createSubtask("sub4", "description", 1);
@@ -133,6 +135,13 @@ class InMemoryTaskManagerTest {
 
         assertSame(TaskStatus.DONE, epic.getStatus(), "Эпик не поменял стутус при удалении подзадачи");
         assertEquals(3, epic.getSubtasksIds().size(), "Не удалилась подзадача из списока эпика");
+
+        taskManager.removeTaskById(subtask1.getId());
+        taskManager.removeTaskById(subtask2.getId());
+        taskManager.removeTaskById(subtask3.getId());
+
+        assertTrue(epic.getSubtasksIds().isEmpty(), "Не удалилить id подзадач");
+        assertSame(TaskStatus.NEW, epic.getStatus(), "Не обновился стутус эпика на NEW");
     }
 
 }

@@ -44,7 +44,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = (Epic) tasksMap.get(epicId);
         epic.getSubtasksIds().add(subtask.getId());
         tasksMap.put(subtask.getId(), subtask);
-        checkEpicStatus(epicId);
+        setEpicStatus(epicId);
         return subtask;
     }
 
@@ -79,7 +79,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtask.setEpicId(epicId);
         ((Epic) tasksMap.get(epicId)).getSubtasksIds().add(subtask.getId());
         tasksMap.put(subtask.getId(), subtask);
-        checkEpicStatus(epicId);
+        setEpicStatus(epicId);
         return subtask.getId();
     }
 
@@ -141,7 +141,7 @@ public class InMemoryTaskManager implements TaskManager {
             Subtask subtask = (Subtask) tasksMap.get(id);
             Epic epic = (Epic) tasksMap.get(subtask.getEpicId());
             epic.getSubtasksIds().remove((Integer) id);
-            checkEpicStatus(epic.getId());
+            setEpicStatus(epic.getId());
         }
         tasksMap.remove(id);
     }
@@ -164,7 +164,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasksMap.get(id).setStatus(status);
         if (tasksMap.get(id) instanceof Subtask) {
             int epicId = ((Subtask) tasksMap.get(id)).getEpicId();
-            checkEpicStatus(epicId);
+            setEpicStatus(epicId);
         }
     }
 
@@ -172,7 +172,7 @@ public class InMemoryTaskManager implements TaskManager {
         return ++id;
     }
 
-    private void checkEpicStatus(int id) {
+    private void setEpicStatus(int id) {
         List<Integer> subsIds = ((Epic) tasksMap.get(id)).getSubtasksIds();
         int countNEW = 0;
         int countDONE = 0;
