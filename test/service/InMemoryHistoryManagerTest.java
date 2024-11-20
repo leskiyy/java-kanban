@@ -1,66 +1,132 @@
 package service;
 
-import com.yandex.kanban.model.Epic;
-import com.yandex.kanban.model.Subtask;
 import com.yandex.kanban.model.Task;
-import com.yandex.kanban.model.TaskStatus;
 import com.yandex.kanban.service.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
 
     public static HistoryManager historyManager;
+    public static final String DESCRIPTION = "description";
 
-    @BeforeEach
-    void initHistoryManager() {
-        historyManager = new InMemoryHistoryManager();
-    }
 
     @Test
     void add() {
-        historyManager.add(new Task("TestTask", "description"));
+        historyManager = new InMemoryHistoryManager();
+        historyManager.add(new Task("TestTask", DESCRIPTION));
         final List<Task> history = historyManager.getHistory();
         assertNotNull(history, "История не пустая.");
         assertEquals(1, history.size(), "История не пустая.");
     }
 
     @Test
-    void testHistory() {
-        List<String> history = new ArrayList<>();
-        HistoryManager historyManager = new InMemoryHistoryManager();
+    void addAndRemoveOneTask() {
+        TaskManager taskManager = initTaskManagersWith10Tasks();
+        historyManager = taskManager.getHistoryManager();
 
-        Task task = new Task("task1", "v1");
-        Subtask subtask = new Subtask("sub1", "v1", 1);
-        Epic epic = new Epic("epic1", "v1");
-        epic.getSubtasksIds().addAll(List.of(1, 2, 3));
+        Task task1 = taskManager.getTaskById(5);
+        assertEquals(1, historyManager.getHistory().size(), "Таск не добавился в историю");
+        assertSame(task1, historyManager.getHistory().getFirst(), "В историю добавился не тот такс");
 
-        historyManager.add(task);
-        history.add(task.toString());
-        historyManager.add(epic);
-        history.add(epic.toString());
-        historyManager.add(subtask);
-        history.add(subtask.toString());
+        task1 = taskManager.getTaskById(5);
+        assertEquals(1, historyManager.getHistory().size(), "Таск не добавился в историю" +
+                " или добавилось два одинаковых");
+        assertSame(task1, historyManager.getHistory().getFirst(), "В историю добавился не тот такс");
 
-        task.setStatus(TaskStatus.IN_PROGRESS);
-        subtask.setDescription("change1");
-        epic.getSubtasksIds().removeFirst();
-
-        historyManager.add(task);
-        history.add(task.toString());
-        historyManager.add(epic);
-        history.add(epic.toString());
-        historyManager.add(subtask);
-        history.add(subtask.toString());
-
-        for (int i = 0; i < history.size(); i++) {
-            assertEquals(history.get(i), historyManager.getHistory().get(i).toString(),
-                    "Менеджер неправильно записывает состояния тасков");
-        }
+        taskManager.removeTaskById(task1.getId());
+        assertEquals(0, historyManager.getHistory().size(), "Таск не удалился из истории");
     }
+
+    @Test
+    void addAndRemoveThreeTasksDifferentOrder() {
+        TaskManager taskManager = initTaskManagersWith10Tasks();
+        historyManager = taskManager.getHistoryManager();
+
+        Task task1 = taskManager.getTaskById(5);
+        Task task2 = taskManager.getTaskById(6);
+        assertEquals(2, historyManager.getHistory().size(), "Таски не добавился в историю");
+        assertSame(task1, historyManager.getHistory().get(0), "В историю добавился не тот такс");
+        assertSame(task2, historyManager.getHistory().get(1), "В историю добавился не тот такс");
+
+        task1 = taskManager.getTaskById(5);
+        assertEquals(2, historyManager.getHistory().size(), "Таски не добавился в историю");
+        assertSame(task1, historyManager.getHistory().get(1), "В историю добавился не тот такс");
+        assertSame(task2, historyManager.getHistory().get(0), "В историю добавился не тот такс");
+
+        Task task3 = taskManager.getTaskById(7);
+        assertEquals(3, historyManager.getHistory().size(), "Таски не добавился в историю");
+        assertSame(task3, historyManager.getHistory().get(2), "В историю добавился не тот такс");
+
+        task3 = taskManager.getTaskById(7);
+        assertEquals(3, historyManager.getHistory().size(), "Появился лишний таск в истории");
+        assertSame(task2, historyManager.getHistory().get(0), "В историю добавился не тот такс");
+        assertSame(task1, historyManager.getHistory().get(1), "В историю добавился не тот такс");
+        assertSame(task3, historyManager.getHistory().get(2), "В историю добавился не тот такс");
+
+        taskManager.removeTaskById(6);
+        assertEquals(2, historyManager.getHistory().size(), "Таск не удалился из истории");
+        assertSame(task1, historyManager.getHistory().get(0), "В историю добавился не тот такс");
+        assertSame(task3, historyManager.getHistory().get(1), "Удалился не тот такс");
+
+        taskManager.removeTaskById(7);
+        assertEquals(1, historyManager.getHistory().size(), "Таск не удалился из истории");
+        assertSame(task1, historyManager.getHistory().getFirst(), "Удалился не тот такс");
+
+        taskManager.removeTaskById(5);
+        assertEquals(0, historyManager.getHistory().size(), "История не отчистилась");
+    }
+
+    @Test
+    void AddTenTaskChangingOrder() {
+        TaskManager taskManager = initTaskManagersWith10Tasks();
+        historyManager = taskManager.getHistoryManager();
+        for (int i = 1; i <= 10; i++) {
+            taskManager.getTaskById(i);
+        }
+        assertEquals(10, historyManager.getHistory().size(), "Не все таски добавились в историю");
+
+        List<Task> allKindOfTasks = taskManager.getAllKindOfTasks();
+        List<Task> history = historyManager.getHistory();
+        for (int i = 0; i < 10; i++) {
+            assertSame(allKindOfTasks.get(i), history.get(i), "История добавилась не в том порядке");
+        }
+        for (int i = 1; i <= 10; i++) {
+            taskManager.getTaskById(11 - i);
+        }
+        history = historyManager.getHistory();
+        for (int i = 0; i < 10; i++) {
+            assertSame(allKindOfTasks.get(i), history.get(9 - i), "История добавилась не в том порядке");
+        }
+
+        taskManager.removeTaskById(1);
+        history = historyManager.getHistory();
+        assertEquals(6, history.size(), "Не удлались подзадачи из истории");
+
+        taskManager.removeTaskById(7);
+        history = historyManager.getHistory();
+        assertEquals(5, history.size(), "Не удлались задача из истории");
+
+        taskManager.removeAllTasks();
+        assertEquals(0, historyManager.getHistory().size(), "История не отчистилась");
+    }
+
+    TaskManager initTaskManagersWith10Tasks() {
+        TaskManager taskManager = new InMemoryTaskManager();
+        taskManager.createEpic("Epic 1", DESCRIPTION);
+        taskManager.createSubtask("Subtask 2", DESCRIPTION, 1);
+        taskManager.createSubtask("Subtask 3", DESCRIPTION, 1);
+        taskManager.createSubtask("Subtask 4", DESCRIPTION, 1);
+        taskManager.createTask("Task 5", DESCRIPTION);
+        taskManager.createTask("Task 6", DESCRIPTION);
+        taskManager.createTask("Task 7", DESCRIPTION);
+        taskManager.createEpic("Epic 8", DESCRIPTION);
+        taskManager.createSubtask("Subtask 9", DESCRIPTION, 8);
+        taskManager.createSubtask("Subtask 10", DESCRIPTION, 8);
+        return taskManager;
+    }
+
 }
