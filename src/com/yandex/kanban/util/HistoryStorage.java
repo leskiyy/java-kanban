@@ -12,34 +12,38 @@ public class HistoryStorage<T extends Task> {
     private Node<T> tail;
     private final Map<Integer, Node<T>> nodeMap = new HashMap<>();
 
-    public void linkLast(T t) {
-        Node<T> newNode = new Node<>(t);
+    public void linkLast(T task) {
+        if (task == null) {
+            return;
+        }
+
+        Node<T> newNode = new Node<>(task);
 
         //in case of empty storage
         if (head == null) {
             head = newNode;
-            nodeMap.put(head.t.getId(), newNode);
+            nodeMap.put(head.task.getId(), newNode);
             return;
         }
 
         //in case of 1 element storage
         if (tail == null) {
-            if (nodeMap.containsKey(t.getId())) {
+            if (nodeMap.containsKey(task.getId())) {
                 head = newNode;
-                nodeMap.put(head.t.getId(), head);
+                nodeMap.put(head.task.getId(), head);
             } else {
                 tail = newNode;
                 head.next = tail;
                 tail.prev = head;
-                nodeMap.put(tail.t.getId(), tail);
+                nodeMap.put(tail.task.getId(), tail);
             }
             return;
         }
 
         //common case
-        if (nodeMap.containsKey(t.getId())) {
-            Node<T> oldNode = nodeMap.get(t.getId());
-            nodeMap.put(t.getId(), newNode);
+        if (nodeMap.containsKey(task.getId())) {
+            Node<T> oldNode = nodeMap.get(task.getId());
+            nodeMap.put(task.getId(), newNode);
             if (oldNode == head) {
                 head = oldNode.next;
                 head.prev = null;
@@ -58,7 +62,7 @@ public class HistoryStorage<T extends Task> {
         tail = newNode;
         oldTail.next = tail;
         tail.prev = oldTail;
-        nodeMap.put(t.getId(), newNode);
+        nodeMap.put(task.getId(), newNode);
 
     }
 
@@ -68,14 +72,14 @@ public class HistoryStorage<T extends Task> {
             return tasks;
         }
         Node<T> node = head;
-        T t = node.t;
-        while (t != null) {
-            tasks.add(t);
+        T task = node.task;
+        while (task != null) {
+            tasks.add(task);
             node = node.next;
             if (node == null) {
                 break;
             } else {
-                t = node.t;
+                task = node.task;
             }
         }
         return tasks;
@@ -115,10 +119,10 @@ public class HistoryStorage<T extends Task> {
     static class Node<E> {
         private Node<E> prev;
         private Node<E> next;
-        private final E t;
+        private final E task;
 
-        private Node(E t) {
-            this.t = t;
+        private Node(E task) {
+            this.task = task;
         }
     }
 }
