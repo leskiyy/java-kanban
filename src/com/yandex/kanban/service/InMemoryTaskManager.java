@@ -50,6 +50,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addTask(Task task) {
+        if (task == null) {
+            return -1;
+        }
         if (task instanceof Epic) {
             return addEpic((Epic) task);
         }
@@ -63,6 +66,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addEpic(Epic epic) {
+        if (epic == null) {
+            return -1;
+        }
         epic.setId(this.nextId());
         epic.setStatus(TaskStatus.NEW);
         epic.setSubtasksIds(new ArrayList<>());
@@ -72,6 +78,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addSubtask(Subtask subtask, int epicId) {
+        if (subtask == null) {
+            return -1;
+        }
         if (!(tasksMap.get(epicId) instanceof Epic)) {
             throw new RuntimeException("wrong epic id");
         }
@@ -85,6 +94,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addSubtask(Subtask subtask) {
+        if (subtask == null) {
+            return -1;
+        }
         return addSubtask(subtask, subtask.getEpicId());
     }
 
@@ -119,7 +131,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getAllSubtasksByEpicId(int epicId) {
-        Epic epic = (Epic) tasksMap.get(epicId);
+        if (!tasksMap.containsKey(id)) {
+            throw new NoSuchElementException("can't find task with id " + id);
+        }
+        Task task = tasksMap.get(epicId);
+        if (!(task instanceof Epic)) {
+            throw new RuntimeException("wrong epic id");
+        }
+        Epic epic = (Epic) task;
         List<Subtask> subtasks = new ArrayList<>();
         for (int i : epic.getSubtasksIds()) {
             subtasks.add((Subtask) tasksMap.get(i));
@@ -130,10 +149,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllTasks() {
         tasksMap.clear();
+        historyManager.clear();
     }
 
     @Override
     public void removeTaskById(int id) {
+        historyManager.remove(id);
         if (tasksMap.get(id) instanceof Epic) {
             removeAllSubtasks(id);
         }
@@ -148,16 +169,25 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTitle(String title, int id) {
+        if (!tasksMap.containsKey(id)) {
+            throw new NoSuchElementException("can't find task with id " + id);
+        }
         tasksMap.get(id).setTitle(title);
     }
 
     @Override
     public void updateDescription(String description, int id) {
+        if (!tasksMap.containsKey(id)) {
+            throw new NoSuchElementException("can't find task with id " + id);
+        }
         tasksMap.get(id).setDescription(description);
     }
 
     @Override
     public void updateStatus(TaskStatus status, int id) {
+        if (!tasksMap.containsKey(id)) {
+            throw new NoSuchElementException("can't find task with id " + id);
+        }
         if (tasksMap.get(id) instanceof Epic) {
             throw new RuntimeException("can't set epic status");
         }
@@ -199,6 +229,7 @@ public class InMemoryTaskManager implements TaskManager {
     private void removeAllSubtasks(int epicId) {
         List<Integer> subtasksIds = ((Epic) tasksMap.get(epicId)).getSubtasksIds();
         for (Integer subId : subtasksIds) {
+            historyManager.remove(subId);
             tasksMap.remove(subId);
         }
     }
