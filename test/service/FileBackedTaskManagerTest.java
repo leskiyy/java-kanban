@@ -49,6 +49,10 @@ public class FileBackedTaskManagerTest {
         for (int i = 0; i < testManagerTasks.size(); i++) {
             assertEquals(testManagerTasks.get(i), initManagerTasks.get(i));
         }
+
+        manager.createTask("additionalTask", DESCRIPTION);
+        initManagerTasks = manager.getAllKindOfTasks();
+        assertEquals(4, initManagerTasks.size(), "Не добавлен таск после инициализации");
     }
 
     @Test

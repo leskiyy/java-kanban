@@ -126,5 +126,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new RuntimeException("Ошибка загрузки файла");
         }
+        this.id = tasksMap.keySet().stream().mapToInt(el -> el).max().orElse(0);
     }
 }
