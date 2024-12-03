@@ -18,18 +18,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public FileBackedTaskManager(String fileName) {
         this.path = Paths.get(fileName);
-        if (!Files.exists(path)) {
-            try {
-                Files.createFile(path);
-            } catch (IOException e) {
-                throw new RuntimeException("Не удалось создаь файл по заданому пути");
-            }
-        }
+        createSaveFile(this.path);
         load();
     }
 
     public FileBackedTaskManager(Path path) {
         this.path = path;
+        createSaveFile(this.path);
         load();
     }
 
@@ -64,13 +59,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public int addEpic(Epic epic) {
         int id = super.addEpic(epic);
-        save();
-        return id;
-    }
-
-    @Override
-    public int addSubtask(Subtask subtask, int epicId) {
-        int id = super.addSubtask(subtask, epicId);
         save();
         return id;
     }
@@ -124,8 +112,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (Stream<String> lines = Files.lines(path)) {
             lines.map(Converter::stringToTask).filter(Objects::nonNull).forEach(el -> tasksMap.put(el.getId(), el));
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка загрузки файла");
+            throw new RuntimeException("Ошибка при чтении файла: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Некорректные данные в файле: " + e.getMessage());
         }
         this.id = tasksMap.keySet().stream().mapToInt(el -> el).max().orElse(0);
+    }
+
+    private void createSaveFile(Path path) {
+        if (!Files.exists(path)) {
+            try {
+                Files.createFile(path);
+            } catch (IOException e) {
+                throw new RuntimeException("Не удалось создаь файл по заданому пути");
+            }
+        }
     }
 }

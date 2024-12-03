@@ -65,7 +65,8 @@ class InMemoryTaskManagerTest {
     void addSubtaskWithEpicId() {
         Epic epic = taskManager.createEpic("TestSubs", "description");
         Subtask subtask = new Subtask("Sub", "description");
-        final int subId = taskManager.addSubtask(subtask, epic.getId());
+        subtask.setEpicId(epic.getId());
+        final int subId = taskManager.addSubtask(subtask);
         assertEquals(2, subId, "Неправильно задан id");
 
         Task savedTask = taskManager.getTaskById(subId);
