@@ -1,5 +1,7 @@
 package com.yandex.kanban.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +19,16 @@ public class Epic extends Task {
 
     public void setSubtasksIds(List<Integer> subtasksIds) {
         this.subtasksIds = subtasksIds;
+    }
+
+    @Override
+    public void setDuration(Duration duration) {
+        super.setDuration(duration);
+    }
+
+    @Override
+    public void setStartTime(LocalDateTime startTime) {
+        super.setStartTime(startTime);
     }
 
     @Override

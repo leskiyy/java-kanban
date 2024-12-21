@@ -1,8 +1,5 @@
-package model;
+package com.yandex.kanban.model;
 
-import com.yandex.kanban.model.Epic;
-import com.yandex.kanban.model.Subtask;
-import com.yandex.kanban.model.Task;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

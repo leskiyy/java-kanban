@@ -10,7 +10,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -64,6 +66,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
+    public void updateDuration(Duration newDuration, int id) {
+        super.updateDuration(newDuration, id);
+        save();
+    }
+
+    @Override
+    public void updateStartTime(LocalDateTime startTime, int id) {
+        super.updateStartTime(startTime, id);
+        save();
+    }
+
+    @Override
+    public Task getTaskById(int id) {
+        Task taskById = super.getTaskById(id);
+        save();
+        return taskById;
+    }
+
+    @Override
     public int addSubtask(Subtask subtask) {
         int id = super.addSubtask(subtask);
         save();
@@ -101,20 +122,45 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void save() {
+        List<Task> history = historyManager.getHistory();
         try {
-            Files.write(path, tasksMap.values().stream().map(Converter::taskToString).toList());
+            Files.write(path, tasksMap.values().stream().map(el -> {
+                int historyIndex = history.indexOf(el);
+                if (el.getStartTime() != null && prioritizedTasks.contains(el)) {
+                    return Converter.taskToString(el, historyIndex, true);
+                } else {
+                    return Converter.taskToString(el, historyIndex, false);
+                }
+            }).toList());
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка чтения файла сохранения");
+            throw new RuntimeException("Ошибка записи файла сохранения", e);
         }
     }
 
     private void load() {
+        List<Integer> prioritizedTasksIds = new ArrayList<>();
+        Map<Integer, Integer> historyManagerIdsIndexes = new TreeMap<>();
         try (Stream<String> lines = Files.lines(path)) {
-            lines.map(Converter::stringToTask).filter(Objects::nonNull).forEach(el -> tasksMap.put(el.getId(), el));
+            lines.peek(el -> {
+                        String[] saveLineParts = el.split(";");
+                        int id = Integer.parseInt(saveLineParts[0]);
+                        if (saveLineParts[saveLineParts.length - 1].equals("true")) {
+                            prioritizedTasksIds.add(id);
+                        }
+                        if (!saveLineParts[saveLineParts.length - 2].equals("-1")) {
+                            int indexInHistory = Integer.parseInt(saveLineParts[saveLineParts.length - 2]);
+                            historyManagerIdsIndexes.put(indexInHistory, id);
+                        }
+                    })
+                    .map(Converter::stringToTask)
+                    .filter(Objects::nonNull)
+                    .forEach(el -> tasksMap.put(el.getId(), el));
+            prioritizedTasksIds.forEach(el -> prioritizedTasks.add(tasksMap.get(el)));
+            historyManagerIdsIndexes.forEach((index, id) -> historyManager.add(tasksMap.get(id)));
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при чтении файла: " + e.getMessage());
+            throw new RuntimeException("Ошибка при чтении файла: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new RuntimeException("Некорректные данные в файле: " + e.getMessage());
+            throw new RuntimeException("Некорректные данные в файле: " + e.getMessage(), e);
         }
         this.id = tasksMap.keySet().stream().mapToInt(el -> el).max().orElse(0);
     }
