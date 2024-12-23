@@ -149,7 +149,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void addPrioritizedTasks() {
-        Task task = new Task("Task2", DESCRIPTION);
+        Task task = new Task("Task1", DESCRIPTION);
         taskManager.addTask(task);
         Set<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
         assertEquals(0, prioritizedTasks.size(), "задача ошибочно добавилась в prioritizedTasks");

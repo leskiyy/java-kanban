@@ -14,7 +14,7 @@ import java.util.List;
 public class Converter {
     private static final String TASK_FORMAT = "%d;%s;%s;%s;%s;%s;%d;%d;%b"; // "id;type;title;description;status;startTime;duration;historyManagerPosition;isInPrioritizedTasks"
     private static final String EPIC_FORMAT = "%d;%s;%s;%s;%s;%s;%d;%s;%d;%b"; // "id;type;title;description;status;startTime;duration;[sub,ids];historyManagerPosition;isInPrioritizedTasks"
-    private static final String SUBTASK_FORMAT = "%d;%s;%s;%s;%s;%s;%d;%d;%d;%b"; // "id;type;title;description;status;startTime;duration;historyManagerPosition;epicID;isInPrioritizedTasks(always false)"
+    private static final String SUBTASK_FORMAT = "%d;%s;%s;%s;%s;%s;%d;%d;%d;%b"; // "id;type;title;description;status;startTime;duration;epicID;historyManagerPosition;isInPrioritizedTasks(always false)"
     private static final DateTimeFormatter START_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
     public static String taskToString(Task task, int historyManagerPosition, boolean isInPrioritizedTasks) {
@@ -39,41 +39,48 @@ public class Converter {
         TaskStatus status = TaskStatus.valueOf(parts[4]);
         LocalDateTime startTime = formStringToDateTime(parts[5]);
         Duration duration = Duration.ofMinutes(Long.parseLong(parts[6]));
-        switch (type) {
-            case "TASK" -> {
-                Task task = new Task(title, description);
-                task.setId(id);
-                task.setStatus(status);
-                task.setStartTime(startTime);
-                task.setDuration(duration);
-                return task;
-            }
-            case "SUBTASK" -> {
-                Subtask subtask = new Subtask(title, description);
-                subtask.setId(id);
-                subtask.setStatus(status);
-                subtask.setStartTime(startTime);
-                subtask.setDuration(duration);
-                subtask.setEpicId(Integer.parseInt(parts[7]));
-                return subtask;
-            }
-            case "EPIC" -> {
-                Epic epic = new Epic(title, description);
-                epic.setId(id);
-                epic.setStatus(status);
-                epic.setStartTime(startTime);
-                epic.setDuration(duration);
-                List<Integer> subIds = new ArrayList<>();
-                for (String subId : parts[7].replaceAll("\\]|\\[", "").split(", ")) {
-                    subIds.add(Integer.parseInt(subId));
-                }
-                epic.setSubtasksIds(subIds);
-                return epic;
-            }
-            default -> {
-                return null;
-            }
+        return switch (type) {
+            case "TASK" -> buildTask(title, description, id, status, startTime, duration);
+            case "SUBTASK" -> buildSubtask(title, description, id, status, startTime, duration, parts[7]);
+            case "EPIC" -> buildEpic(title, description, id, status, startTime, duration, parts[7]);
+            default -> null;
+        };
+    }
+
+    private static Task buildTask(String title, String description, int id, TaskStatus status, LocalDateTime startTime,
+                                  Duration duration) {
+        Task task = new Task(title, description);
+        task.setId(id);
+        task.setStatus(status);
+        task.setStartTime(startTime);
+        task.setDuration(duration);
+        return task;
+    }
+
+    private static Task buildSubtask(String title, String description, int id, TaskStatus status,
+                                     LocalDateTime startTime, Duration duration, String epicID) {
+        Subtask subtask = new Subtask(title, description);
+        subtask.setId(id);
+        subtask.setStatus(status);
+        subtask.setStartTime(startTime);
+        subtask.setDuration(duration);
+        subtask.setEpicId(Integer.parseInt(epicID));
+        return subtask;
+    }
+
+    private static Task buildEpic(String title, String description, int id, TaskStatus status, LocalDateTime startTime,
+                                  Duration duration, String subs) {
+        Epic epic = new Epic(title, description);
+        epic.setId(id);
+        epic.setStatus(status);
+        epic.setStartTime(startTime);
+        epic.setDuration(duration);
+        List<Integer> subIds = new ArrayList<>();
+        for (String subId : subs.replaceAll("\\]|\\[", "").split(", ")) {
+            subIds.add(Integer.parseInt(subId));
         }
+        epic.setSubtasksIds(subIds);
+        return epic;
     }
 
 

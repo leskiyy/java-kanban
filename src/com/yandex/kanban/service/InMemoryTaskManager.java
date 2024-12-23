@@ -8,12 +8,13 @@ import com.yandex.kanban.model.TaskStatus;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.BiPredicate;
 
 public class InMemoryTaskManager implements TaskManager {
 
     protected int id = 0;
     protected final Map<Integer, Task> tasksMap = new HashMap<>();
-    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator
+    protected final Set<Task> prioritizedTasks = new TreeSet<>(Comparator
             .comparing(Task::getStartTime)
             .thenComparing(Task::getDuration)
             .thenComparing(Task::getId));
@@ -277,11 +278,21 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean isCrossingTasks(Task task) {
-        Task next = prioritizedTasks.higher(task);
-        Task prev = prioritizedTasks.lower(task);
-        boolean isCrossingPrev = prev != null && getEndTime(prev.getId()).isAfter(task.getStartTime());
-        boolean isCrossingNext = next != null && next.getStartTime().isBefore(getEndTime(task.getId()));
-        return isCrossingPrev || isCrossingNext;
+        BiPredicate<Task, Task> isCrossingForEarlierPrioritizedTask = (inputTask, prioritizedTask) ->
+                prioritizedTask.getStartTime().plus(prioritizedTask.getDuration()).isAfter(inputTask.getStartTime());
+        BiPredicate<Task, Task> isCrossingForLaterPrioritizedTask = (inputTask, prioritizedTask) ->
+                prioritizedTask.getStartTime().isBefore(inputTask.getStartTime().plus(inputTask.getDuration()));
+        BiPredicate<Task, Task> isCrossingForEqualsStartTimePrioritizedTask = (inputTask, prioritizedTask) ->
+                !inputTask.getDuration().isZero() && !prioritizedTask.getDuration().isZero();
+        return prioritizedTasks.stream().anyMatch(el -> {
+            if (el.getStartTime().isBefore(task.getStartTime())) {
+                return isCrossingForEarlierPrioritizedTask.test(task, el);
+            } else if (el.getStartTime().isAfter(task.getStartTime())) {
+                return isCrossingForLaterPrioritizedTask.test(task, el);
+            } else {
+                return isCrossingForEqualsStartTimePrioritizedTask.test(task, el);
+            }
+        });
     }
 
     private void setEpicStatus(Epic epic) {
