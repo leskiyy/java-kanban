@@ -1,7 +1,6 @@
-package service;
+package com.yandex.kanban.service;
 
 import com.yandex.kanban.model.Task;
-import com.yandex.kanban.service.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;

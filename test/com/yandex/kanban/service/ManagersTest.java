@@ -1,8 +1,5 @@
-package service;
+package com.yandex.kanban.service;
 
-import com.yandex.kanban.service.HistoryManager;
-import com.yandex.kanban.service.Managers;
-import com.yandex.kanban.service.TaskManager;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
