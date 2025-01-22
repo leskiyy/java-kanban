@@ -1,5 +1,7 @@
 package com.yandex.kanban.model;
 
+import com.yandex.kanban.util.TaskTypes;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +13,11 @@ public class Epic extends Task {
 
     public Epic(String title, String description) {
         super(title, description);
+    }
+
+    @Override
+    public TaskTypes getType() {
+        return TaskTypes.EPIC;
     }
 
     public List<Integer> getSubtasksIds() {

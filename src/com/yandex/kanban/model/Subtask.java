@@ -1,5 +1,7 @@
 package com.yandex.kanban.model;
 
+import com.yandex.kanban.util.TaskTypes;
+
 public class Subtask extends Task {
 
     private int epicId;
@@ -12,6 +14,11 @@ public class Subtask extends Task {
     public Subtask(String title, String description) {
         super(title, description);
         this.epicId = -1;
+    }
+
+    @Override
+    public TaskTypes getType() {
+        return TaskTypes.SUBTASK;
     }
 
     public int getEpicId() {
