@@ -6,7 +6,7 @@ import com.yandex.kanban.model.Task;
 import com.yandex.kanban.model.TaskStatus;
 import com.yandex.kanban.util.Converter;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

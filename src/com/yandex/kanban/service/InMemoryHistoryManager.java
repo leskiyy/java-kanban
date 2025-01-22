@@ -3,7 +3,7 @@ package com.yandex.kanban.service;
 import com.yandex.kanban.model.Task;
 import com.yandex.kanban.util.HistoryStorage;
 
-import java.util.*;
+import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
 

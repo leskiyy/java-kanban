@@ -111,10 +111,4 @@ public class Converter {
             return LocalDateTime.parse(formatTime, START_TIME_FORMATTER);
         }
     }
-
-    enum TaskTypes {
-        TASK,
-        EPIC,
-        SUBTASK
-    }
 }
