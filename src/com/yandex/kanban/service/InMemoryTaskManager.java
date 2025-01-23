@@ -1,6 +1,6 @@
 package com.yandex.kanban.service;
 
-import com.yandex.kanban.exeptions.IntersectionException;
+import com.yandex.kanban.exceptions.IntersectionException;
 import com.yandex.kanban.model.Epic;
 import com.yandex.kanban.model.Subtask;
 import com.yandex.kanban.model.Task;

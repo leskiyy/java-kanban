@@ -10,8 +10,11 @@ import java.net.InetSocketAddress;
 
 public class HttpTaskServer {
     private static final int PORT = 8080;
-    private TaskManager manager;
-    private HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+    private static final String LOCALHOST = "localhost";
+    private final InetSocketAddress socketAddress = new InetSocketAddress(LOCALHOST, PORT);
+    private final InetSocketAddress unresolvedAddress = InetSocketAddress.createUnresolved(LOCALHOST, PORT);
+    private final TaskManager manager;
+    private HttpServer server = HttpServer.create(socketAddress, 0);
 
     public HttpTaskServer() throws IOException {
         this.manager = Managers.getDefault();
@@ -29,6 +32,7 @@ public class HttpTaskServer {
         server.createContext("/epics", new EpicsHandler(this.manager));
         server.createContext("/history", new HistoryHandler(this.manager));
         server.createContext("/prioritized", new PrioritizedHandler(this.manager));
+        server.setExecutor(null);
     }
 
     public void start() {
@@ -37,6 +41,7 @@ public class HttpTaskServer {
 
     public void stop() {
         this.server.stop(0);
+        this.server = null;
     }
 
     public static void main(String[] args) throws IOException {

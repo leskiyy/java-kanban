@@ -28,10 +28,10 @@ public class PrioritizedHandler extends BaseHttpHandler {
                     sendMethodNotAllowed(exchange);
                 }
             } else {
-                sendBadRequest(exchange);
+                sendBadRequest(exchange, WRONG_PATH);
             }
         } catch (Exception e) {
-            sendBadRequest(exchange);
+            sendBadRequest(exchange, UNKNOWN_ERROR);
         }
     }
 }

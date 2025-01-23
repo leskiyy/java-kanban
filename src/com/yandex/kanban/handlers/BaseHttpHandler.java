@@ -3,7 +3,7 @@ package com.yandex.kanban.handlers;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.yandex.kanban.exeptions.IntersectionException;
+import com.yandex.kanban.exceptions.IntersectionException;
 import com.yandex.kanban.model.Epic;
 import com.yandex.kanban.model.Subtask;
 import com.yandex.kanban.model.Task;
@@ -18,6 +18,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
     private static final String HAS_INTERACTIONS = "INPUT TASK HAS INTERACTIONS";
     private static final String ADDED_SUCCESSFULLY = "TASK ADDED SUCCESSFULLY";
     private static final String UPDATED_SUCCESSFULLY = "TASK UPDATED SUCCESSFULLY";
+    private static final String UPDATED_FAILED = "UPDATE FAILED";
     protected static final String WRONG_PATH = "WRONG PATH";
     protected static final String WRONG_TYPE = "WRONG TYPE";
     protected static final String WRONG_ID_FORMAT = "WRONG ID FORMAT";
@@ -40,12 +41,8 @@ public abstract class BaseHttpHandler implements HttpHandler {
         exchange.getResponseBody().write(responseBytes);
     }
 
-    protected void sendNoFound(HttpExchange exchange) throws IOException {
+    protected void sendNotFound(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(404, 0);
-    }
-
-    protected void sendBadRequest(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(400, 0);
     }
 
     protected void sendBadRequest(HttpExchange exchange, String response) throws IOException {
@@ -82,26 +79,22 @@ public abstract class BaseHttpHandler implements HttpHandler {
             if (succeed) {
                 sendUpdatedSuccessfully(exchange);
             } else {
-                sendBadRequest(exchange);
+                sendBadRequest(exchange, UPDATED_FAILED);
             }
+        } catch (IntersectionException e) {
+            sendHasInteractions(exchange, e.getMessage());
         } catch (Exception e) {
-            if (e instanceof IntersectionException) {
-                sendHasInteractions(exchange, e.getMessage());
-            } else {
-                sendBadRequest(exchange);
-            }
+            sendBadRequest(exchange, e.getMessage());
         }
     }
 
     protected void sendAddResult(HttpExchange exchange, Task task) throws IOException {
         try {
             manager.addTask(task);
+        } catch (IntersectionException e) {
+            sendHasInteractions(exchange, e.getMessage());
         } catch (Exception e) {
-            if (e instanceof IntersectionException) {
-                sendHasInteractions(exchange, e.getMessage());
-            } else {
-                sendBadRequest(exchange, e.getMessage());
-            }
+            sendBadRequest(exchange, e.getMessage());
         }
         sendAddedSuccessfully(exchange);
     }
