@@ -1,5 +1,7 @@
 package com.yandex.kanban.model;
 
+import com.yandex.kanban.util.TaskTypes;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,6 +11,7 @@ public class Task {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
+    private TaskTypes type;
     private String title;
     private String description;
     private int id;
@@ -17,11 +20,16 @@ public class Task {
     private Duration duration;
 
     public Task(String title, String description) {
+        this.type = getType();
         this.title = title;
         this.description = description;
         this.id = -1;
         this.status = TaskStatus.NEW;
         this.duration = Duration.ZERO;
+    }
+
+    public TaskTypes getType() {
+        return TaskTypes.TASK;
     }
 
     public String getTitle() {
@@ -91,8 +99,8 @@ public class Task {
     @Override
     public String toString() {
         String startTimeStr = startTime == null ? "NoData" : FORMATTER.format(startTime);
-        String durationStr = duration.toDaysPart() + "days " + duration.toHoursPart() + "hours "
-                + duration.toMinutesPart() + "minutes";
+        String durationStr = duration == null ? "NoData" : duration.toDaysPart() + "days " + duration.toHoursPart()
+                + "hours " + duration.toMinutesPart() + "minutes";
 
         return "Task{" +
                 "title='" + title + '\'' +

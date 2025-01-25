@@ -1,5 +1,6 @@
 package com.yandex.kanban.service;
 
+import com.yandex.kanban.exceptions.IntersectionException;
 import com.yandex.kanban.model.Epic;
 import com.yandex.kanban.model.Subtask;
 import com.yandex.kanban.model.Task;
@@ -137,8 +138,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getAllSubtasksByEpicId(int epicId) {
-        if (!tasksMap.containsKey(id)) {
-            throw new NoSuchElementException("can't find task with id " + id);
+        if (!tasksMap.containsKey(epicId)) {
+            throw new NoSuchElementException("can't find task with id " + epicId);
         }
         Task task = tasksMap.get(epicId);
         if (!(task instanceof Epic)) {
@@ -233,10 +234,11 @@ public class InMemoryTaskManager implements TaskManager {
         if (oldStartTime == null) {
             addTaskToPrioritizedTasks(task);
         } else {
+            prioritizedTasks.remove(task);
             if (isCrossingTasks(task)) {
                 task.setStartTime(oldStartTime);
                 prioritizedTasks.add(task);
-                throw new RuntimeException("task id=" + id + " is crossing existing ones because of new start time");
+                throw new IntersectionException("task id=" + id + " is crossing existing ones because of new start time");
             } else {
                 prioritizedTasks.add(task);
             }
@@ -259,7 +261,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (isCrossingTasks(task)) {
             task.setDuration(oldDuration);
             prioritizedTasks.add(task);
-            throw new RuntimeException("task id=" + id + " is crossing existing ones because of new duration");
+            throw new IntersectionException("task id=" + id + " is crossing existing ones because of new duration");
         } else {
             prioritizedTasks.add(task);
         }
@@ -353,7 +355,7 @@ public class InMemoryTaskManager implements TaskManager {
             } else {
                 task.setStartTime(null);
                 task.setDuration(Duration.ZERO);
-                throw new RuntimeException("Task id=" + task.getId() +
+                throw new IntersectionException("Task id=" + task.getId() +
                         " saved in manager, but its startTime/duration are set to null/zero");
             }
         }
@@ -373,5 +375,4 @@ public class InMemoryTaskManager implements TaskManager {
     private int nextId() {
         return ++id;
     }
-
 }
